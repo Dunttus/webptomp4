@@ -6,117 +6,140 @@ import glob
 from moviepy import *
 import PIL.Image
 
-def analyse_image(path):
-    im = PIL.Image.open(path)
-    results = {'size': im.size, 'mode': 'full'}
-    try:
-        while True:
-            if im.tile:
-                tile = im.tile[0]
-                update_region_dimensions = tile[1][2:]
-                if update_region_dimensions != im.size:
-                    results['mode'] = 'partial'
-                    break
-            im.seek(im.tell() + 1)
-    except EOFError:
-        pass
-    return results
+# Function to analyze image properties (size and mode: full or partial)
+def extract_image_details(image_path):
+    print(f"Analyzing image: {image_path}")  # Debugging
+    with PIL.Image.open(image_path) as im:
+        image_info = {'size': im.size, 'mode': 'full'}
+        try:
+            while True:
+                if im.tile:
+                    tile = im.tile[0]
+                    if tile[1][2:] != im.size:
+                        image_info['mode'] = 'partial'
+                        break
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
+    print(f"Image details: {image_info}")  # Debugging
+    return image_info
 
-def process_image(path, temp_dir):
-    images = []
-    mode = analyse_image(path)['mode']
-    im = PIL.Image.open(path)
-    i = 0
-    p = im.getpalette()
-    last_frame = im.convert('RGBA')
+# Function to extract frames from an image (handling GIFs and partial updates)
+def generate_image_frames(image_path, temp_directory):
+    print(f"Extracting frames from: {image_path}")  # Debugging
+    frame_list = []
+    mode = extract_image_details(image_path)['mode']
+    with PIL.Image.open(image_path) as im:
+        frame_index = 0
+        palette = im.getpalette()
+        last_frame = im.convert('RGBA')
+        
+        try:
+            while True:
+                frame_filename = os.path.join(temp_directory, f'{os.path.splitext(os.path.basename(image_path))[0]}-{frame_index}.png')
+                if '.gif' in image_path and not im.getpalette():
+                    im.putpalette(palette)
+                new_frame = PIL.Image.new('RGBA', im.size)
+                if mode == 'partial':
+                    new_frame.paste(last_frame)
+                new_frame.paste(im, (0, 0), im.convert('RGBA'))
+                new_frame.save(frame_filename, 'PNG')
+                frame_list.append(frame_filename)
+                
+                frame_index += 1
+                last_frame = new_frame
+                im.seek(im.tell() + 1)
+        except EOFError:
+            pass
     
-    try:
-        while True:
-            frame_file_name = os.path.join(temp_dir, f'{os.path.splitext(os.path.basename(path))[0]}-{i}.png')
-            if '.gif' in path and not im.getpalette():
-                im.putpalette(p)
-            new_frame = PIL.Image.new('RGBA', im.size)
-            if mode == 'partial':
-                new_frame.paste(last_frame)
-            new_frame.paste(im, (0, 0), im.convert('RGBA'))
-            new_frame.save(frame_file_name, 'PNG')
-            images.append(frame_file_name)
-            i += 1
-            last_frame = new_frame
-            im.seek(im.tell() + 1)
-    except EOFError:
-        pass
-    return images
+    print(f"Extracted {len(frame_list)} frames from {image_path}")  # Debugging
+    return frame_list
 
-def webp_mp4(input_file, output_dir=None, fps=20, percentage=100):
-    temp_dir = tempfile.mkdtemp()
+# Function to convert a WEBP image sequence into an MP4 video with optional splitting
+def convert_webp_to_mp4(source_file, frame_rate=20, split_ratio=100, output_dir=None):
+    print(f"Converting {source_file} to MP4...")  # Debugging
+    temp_directory = tempfile.mkdtemp()
     try:
-        images = process_image(input_file, temp_dir)
-        if not images:
-            print(f"No frames extracted from {input_file}")
-            return []
+        extracted_frames = generate_image_frames(source_file, temp_directory)
+        if not extracted_frames:
+            print(f"No frames extracted from {source_file}")
+            return None
         
-        num_frames_part1 = int(len(images) * (percentage / 100))
-        part1_images = images[:num_frames_part1]
-        part2_images = images[num_frames_part1:] if num_frames_part1 < len(images) else []
+        split_index = int(len(extracted_frames) * (split_ratio / 100))
+        first_segment_frames, second_segment_frames = extracted_frames[:split_index], extracted_frames[split_index:]
+        base_filename = os.path.splitext(os.path.basename(source_file))[0]
         
-        base_name = os.path.splitext(os.path.basename(input_file))[0]
-        
+        # Output filenames will be based on the specified output directory or current working directory
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-            output_file1 = os.path.join(output_dir, f'{base_name}_part1.mp4')
-            output_file2 = os.path.join(output_dir, f'{base_name}_part2.mp4') if part2_images else None
+            first_output = os.path.join(output_dir, f'{base_filename}_part1.mp4')
+            second_output = os.path.join(output_dir, f'{base_filename}_part2.mp4') if second_segment_frames else None
         else:
-            output_file1 = f'{base_name}_part1.mp4'
-            output_file2 = f'{base_name}_part2.mp4' if part2_images else None
+            first_output = f'{base_filename}_part1.mp4'
+            second_output = f'{base_filename}_part2.mp4' if second_segment_frames else None
         
-        clip1 = ImageSequenceClip(part1_images, fps=fps)
-        clip1.write_videofile(output_file1, codec="libx264")
+        # Generate first part of the video
+        print(f"Creating MP4: {first_output}")  # Debugging
+        ImageSequenceClip(first_segment_frames, fps=frame_rate).write_videofile(first_output, codec="libx264", threads=4, preset="ultrafast")
+        output_files = [first_output]
         
-        output_files = [output_file1]
+        if second_segment_frames:
+            print(f"Creating second MP4: {second_output}")  # Debugging
+            ImageSequenceClip(second_segment_frames, fps=frame_rate).write_videofile(second_output, codec="libx264", threads=4, preset="ultrafast")
+            output_files.append(second_output)
         
-        if part2_images:
-            clip2 = ImageSequenceClip(part2_images, fps=fps)
-            clip2.write_videofile(output_file2, codec="libx264")
-            output_files.append(output_file2)
-        
+        print(f"Generated MP4 files: {output_files}")  # Debugging
         return output_files
     finally:
-        shutil.rmtree(temp_dir)
+        shutil.rmtree(temp_directory)
+        print(f"Cleaned up temporary files for {source_file}")  # Debugging
 
-def combine_videos(output_files, output_file):
-    if not output_files:
-        print("No MP4 files found to combine.")
+# Function to merge multiple MP4 video files into a single file
+def merge_video_clips(video_files, final_output):
+    print(f"Merging videos into: {final_output}")  # Debugging
+    if not video_files:
+        print("No MP4 files found to merge.")
         return
     
-    clips = [VideoFileClip(f) for f in sorted(output_files, key=lambda x: os.path.basename(x).lower())]
-    final_clip = concatenate_videoclips(clips)
-    final_clip.write_videofile(output_file, codec="libx264")
-    print(f"Combined video saved as {output_file}")
+    video_clips = [VideoFileClip(f) for f in sorted(video_files, key=lambda x: os.path.basename(x).lower())]
+    concatenate_videoclips(video_clips).write_videofile(final_output, codec="libx264", threads=4, preset="ultrafast")
+    print(f"Merged video saved as {final_output}")
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Convert WEBP files to MP4 and optionally combine them")
+# Function to parse command-line arguments for the script
+def get_script_arguments():
+    parser = argparse.ArgumentParser(description="Convert WEBP files to MP4 and optionally merge them")
     parser.add_argument("input_files", nargs='*', help="Input file names (.webp)")
-    parser.add_argument("-o", "--output_dir", help="Output directory (optional)")
     parser.add_argument("--fps", type=int, default=20, help="Frames per second (default: 20)")
-    parser.add_argument("--percentage", type=int, default=100, help="Percentage of the video to process in the first file (default: 100%)")
-    parser.add_argument("--combineoutput", help="Filename for combined output video (optional)")
+    parser.add_argument("--percent", type=int, default=100, help="Percentage of the video to process in the first file (default: 100%)")
+    parser.add_argument("--output", help="Directory for output MP4 files (optional)")
+    parser.add_argument("--combine", help="Filename for combined output video (optional)")
     return parser.parse_args()
 
+# Main execution block
 if __name__ == "__main__":
-    args = parse_arguments()
+    print("Script execution started...")  # Debugging
+    args = get_script_arguments()
+    
+    print("Command-line arguments received:", vars(args))  # Debugging
+    
     input_files = args.input_files if args.input_files else glob.glob("*.webp")
     
     if not input_files:
-        print("No WEBP files found in the current directory.")
+        print("No WEBP files found in the current directory or provided as arguments.")
         exit()
     
-    all_output_files = []
+    print(f"Files detected for processing: {input_files}")  # Debugging
     
-    for input_file in input_files:
-        print(f"Processing: {input_file} ({args.percentage}% in first file, {100 - args.percentage}% in second file)")
-        output_files = webp_mp4(input_file, args.output_dir, args.fps, args.percentage)
-        all_output_files.extend(output_files)
+    processed_output_files = []
     
-    if args.combineoutput and all_output_files:
-        combine_videos(all_output_files, args.combineoutput)
+    for file in input_files:
+        print(f"Processing: {file} ({args.percent}% in first file, {100 - args.percent}% in second file)")
+        output_files = convert_webp_to_mp4(file, args.fps, args.percent, args.output)
+        if output_files:
+            processed_output_files.extend(output_files)
+    
+    if args.combine and processed_output_files:
+        final_output = args.combine
+        merge_video_clips(processed_output_files, final_output)
+    
+    print("Script execution completed!")  # Debugging
