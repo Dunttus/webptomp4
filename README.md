@@ -26,11 +26,11 @@ Run code: `python3 videoconvert.py`\
 \
 ![percentage](./images/image_normal.png)
 ### Convert percentage parts of video into 2 videos
-Run code: `python3 videoconvert.py --percentage 80`\
+Run code: `python3 videoconvert.py --percent 80`\
 \
 ![percentage](./images/image_prosent.png)
 
 ### Convert all videos and extra video file that combined all videos (videos sorted by filename a-z and 1-9), (combining videos may fail if the videos are incompatible with each other, such as having different resolutions)
-Run code: `python3 videoconvert.py --combineoutput final.mp4`\
+Run code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 \
 ![combine](./images/image_combine.png)
