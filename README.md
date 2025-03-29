@@ -1,14 +1,12 @@
 # webptomp4
 **Webp to mp4 video converter**
-Didint find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS.
+Didint find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS and Windows 11.
 # Requirement:
 Any OS that supports python3
-1. Python3
-2. Python3 Pillow
-3. Python3 Moviepy
-4. Python3 Pillow
-5. Python3 Argparse
-6. Python3 Glob2
+1. Python3 Pillow
+2. Python3 Moviepy
+3. Python3 Argparse
+4. Python3 Glob2
 # Install for Ubuntu bash
 `sudo apt-get update`\
 `sudo apt-get install python3`\
@@ -38,4 +36,4 @@ Run test code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 ### Save local logs in text file with --log (for debugging)
 Run test code: `python3 videoconvert.py --log --fps 16 --combine fullvideo.mp4`\
 \
-![combine](./images/image_log.png)
+![log](./images/image_log.png)
