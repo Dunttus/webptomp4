@@ -3,17 +3,26 @@
 Didint find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS and Windows 11.
 # Requirement:
 Any OS that supports python3
-1. Python3 Pillow
-2. Python3 Moviepy
-3. Python3 Argparse
-4. Python3 Glob2
+* Python3
+  + Python3 Pillow
+  + Python3 Moviepy
+  + Python3 Argparse
+  + Python3 Glob2
+* FFMPEG
+
+Python3 Pillow
+Python3 Moviepy
+Python3 Argparse
+Python3 Glob2
 # Install for Ubuntu bash
 `sudo apt-get update`\
 `sudo apt-get install python3`\
-`pip3 install moviepy pillow argparse glob2`
+`pip3 install moviepy pillow argparse glob2`\
+`sudo apt-get install ffmpeg`
 # Install for Windows cmd
 `winget install python3`\
-`pip3 install moviepy pillow argparse glob2`
+`pip3 install moviepy pillow argparse glob2`\
+`winget install ffmpeg`
 # Usage:
 Copy videoconvert.py in same folder as video files. Test commands (no user inputs default setting is 20framespersecond, set new fps with --fps number): \
 `videoconvert.py --fps 16`\
