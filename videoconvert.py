@@ -5,6 +5,7 @@ import tempfile
 import argparse
 import glob
 import logging
+import subprocess
 from pathlib import Path
 from typing import List, Dict, Optional
 from moviepy import *
@@ -220,12 +221,12 @@ class VideoConverter:
         frame_rate: int = 20
     ) -> bool:
         """
-        Merges multiple video files into one.
+        Merges multiple video files into one using FFmpeg's lossless concatenation.
         
         Args:
             video_files: List of video files to merge
             output_path: Path for merged output
-            frame_rate: Target frame rate
+            frame_rate: Not used (kept for compatibility)
             
         Returns:
             True if merge succeeded, False otherwise
@@ -235,70 +236,50 @@ class VideoConverter:
             return False
             
         try:
-            # Natural sorting for numbered sequences
-            def natural_sort_key(s):
-                return [
-                    int(text) if text.isdigit() else text.lower()
-                    for text in re.split('([0-9]+)', str(s))
-                ]
+            # Create temporary file listing inputs
+            list_file = Path(output_path).with_suffix('.txt')
+            with open(list_file, 'w') as f:
+                for file in video_files:
+                    f.write(f"file '{Path(file).absolute()}'\n")
             
-            video_files = sorted(video_files, key=natural_sort_key)
+            # FFmpeg command for lossless concatenation
+            cmd = [
+                'ffmpeg',
+                '-f', 'concat',
+                '-safe', '0',
+                '-i', str(list_file),
+                '-c', 'copy',  # No re-encoding
+                '-y',  # Overwrite output
+                str(output_path)
+            ]
             
-            clips = []
-            for file in video_files:
-                try:
-                    logging.info(f"Loading clip: {file}")
-                    clip = VideoFileClip(file)
-                    
-                    # Ensure consistent frame rate and resolution
-                    if clip.fps != frame_rate:
-                        clip = clip.set_fps(frame_rate)
-                    
-                    clips.append(clip)
-                except Exception as e:
-                    logging.error(f"Error loading {file}: {e}")
-                    continue
-                    
-            if not clips:
-                logging.error("No valid video clips to merge")
+            logging.info("Performing lossless merge with FFmpeg...")
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                logging.error(f"FFmpeg failed: {result.stderr}")
                 return False
                 
-            logging.info(f"Merging {len(clips)} clips into {output_path}")
-            final_clip = concatenate_videoclips(clips, method="compose")
-            
-            # Write final merged video
-            final_clip.write_videofile(
-                output_path,
-                codec="libx264",
-                threads=4,
-                preset="medium",
-                ffmpeg_params=["-crf", "23", "-pix_fmt", "yuv420p"],
-                logger=None  # Disable moviepy progress bars
-            )
-            
-            # Close all clips to release resources
-            for clip in clips:
-                clip.close()
-            final_clip.close()
-            
             return True
             
+        except subprocess.CalledProcessError as e:
+            logging.error(f"FFmpeg merge failed (code {e.returncode}): {e.stderr}")
+            return False
         except Exception as e:
-            logging.error(f"Video merging failed: {e}")
+            logging.error(f"Merge failed: {e}")
             return False
         finally:
-            # Ensure all clips are closed
-            for clip in clips:
-                try:
-                    clip.close()
-                except:
-                    pass
+            # Clean up temporary file
+            try:
+                list_file.unlink(missing_ok=True)
+            except:
+                pass
 
 def main():
     """Main entry point for command-line execution."""
     parser = argparse.ArgumentParser(
         description="Convert animated WEBP/GIF files to MP4 videos with optional splitting and merging",
-        epilog="Example: python webp_converter.py anim1.webp anim2.webp --fps 24 --percent 50 --output videos --log"
+        epilog="Example: python webp_converter.py anim1.webp anim2.webp --fps 24 --percent 50 --output videos --combine final.mp4 --log"
     )
     parser.add_argument(
         "input_files",
