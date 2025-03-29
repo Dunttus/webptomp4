@@ -274,7 +274,7 @@ def main():
     """Main entry point for command-line execution."""
     parser = argparse.ArgumentParser(
         description="Convert animated WEBP files to MP4 videos with optional splitting and merging",
-        epilog="Example: python videoconvert.py anim1.webp anim2.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log"
+        epilog="Example: python3 videoconvert.py a1_video.webp a2_video.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log"
     )
     parser.add_argument(
         "input_files",
