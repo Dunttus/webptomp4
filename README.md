@@ -17,20 +17,25 @@ Any OS that supports python3
 `winget install python3`\
 `pip3 install moviepy pillow argparse glob2`
 # Usage:
-Copy videoconvert.py in same folder as video files. Test commands:
+Copy videoconvert.py in same folder as video files. Test commands (no user inputs default setting is 20framespersecond, set new fps with --fps number): \
 `videoconvert.py --fps 16`\
 `python3 videoconvert.py --fps 16`
 
-### Convert all webp files in same folder (no user inputs default setting is 20framespersecond, set new fps with --fps number)
-Run code: `python3 videoconvert.py`\
+### Convert all webp files in same folder
+Run test code: `python3 videoconvert.py --fps 16`\
 \
 ![percentage](./images/image_normal.png)
 ### Convert percentage parts of video into 2 videos
-Run code: `python3 videoconvert.py --percent 80`\
+Run test code: `python3 videoconvert.py --percent 80`\
 \
 ![percentage](./images/image_prosent.png)
 
 ### Convert all videos and extra video file that combined all videos (videos sorted by filename a-z and 1-9), (combining videos may fail if the videos are incompatible with each other, such as having different resolutions)
-Run code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
+Run test code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 \
 ![combine](./images/image_combine.png)
+
+### Save local logs in text file with --log (for debugging)
+Run test code: `python3 videoconvert.py --log --fps 16 --combine fullvideo.mp4`\
+\
+![combine](./images/image_log.png)
