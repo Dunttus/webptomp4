@@ -40,7 +40,7 @@ class ImageAnalyzer:
             - mode: 'full' or 'partial' (full frame vs partial updates)
             - frame_count: Total number of frames
             - duration: Total duration in milliseconds (if available)
-            - format: Image format (GIF, WEBP, etc.)
+            - format: Image format (WEBP)
         """
         logging.info(f"Analyzing image: {image_path}")
         
@@ -109,15 +109,10 @@ class FrameExtractor:
         
         try:
             with Image.open(image_path) as img:
-                palette = img.getpalette()
                 last_frame = img.convert('RGBA')
                 
                 for frame_index, frame in enumerate(ImageSequence.Iterator(img)):
                     frame_filename = temp_dir / f"{Path(image_path).stem}-{frame_index:04d}.png"
-                    
-                    # Handle palette for GIFs
-                    if img.format == "GIF" and palette and not frame.getpalette():
-                        frame.putpalette(palette)
                     
                     # Handle partial frame updates
                     if image_info['mode'] == 'partial':
@@ -278,13 +273,13 @@ class VideoConverter:
 def main():
     """Main entry point for command-line execution."""
     parser = argparse.ArgumentParser(
-        description="Convert animated WEBP/GIF files to MP4 videos with optional splitting and merging",
+        description="Convert animated WEBP files to MP4 videos with optional splitting and merging",
         epilog="Example: python webp_converter.py anim1.webp anim2.webp --fps 24 --percent 50 --output videos --combine final.mp4 --log"
     )
     parser.add_argument(
         "input_files",
         nargs='*',
-        help="Input file names (.webp, .gif)"
+        help="Input file names (.webp)"
     )
     parser.add_argument(
         "--fps",
@@ -319,7 +314,7 @@ def main():
     logging.info(f"Starting conversion with parameters: {vars(args)}")
     
     # Find input files if not specified
-    input_files = args.input_files if args.input_files else glob.glob("*.[wW][eE][bB][pP]") + glob.glob("*.[gG][iI][fF]")
+    input_files = args.input_files if args.input_files else glob.glob("*.[wW][eE][bB][pP]")
     if not input_files:
         logging.error("No input files found")
         return
