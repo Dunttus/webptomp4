@@ -18,6 +18,7 @@ Any OS that supports python3
 Copy videoconvert.py in same folder as video files. Test commands (no user inputs default setting is 20framespersecond, set new fps with --fps number): \
 `videoconvert.py --fps 16`\
 `python3 videoconvert.py --fps 16`
+`python3 videoconvert.py a1_video.webp a2_video.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log`
 
 ### Convert all webp files in same folder
 Run test code: `python3 videoconvert.py --fps 16`\
