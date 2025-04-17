@@ -1,5 +1,4 @@
-# webptomp4
-**Webp to mp4 video converter**
+# Webp to mp4 video converter
 Didin't find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS and Windows 11.
 # Requirement:
 Any OS that supports python3
@@ -20,11 +19,21 @@ Any OS that supports python3
 `pip3 install moviepy pillow argparse glob2`\
 `winget install ffmpeg`
 # Usage:
-Copy videoconvert.py in same folder as video files. Test commands (no user inputs default setting is 20framespersecond, set new fps with --fps number): \
-`videoconvert.py --fps 16`\
-`python3 videoconvert.py --fps 16` \
-`python3 videoconvert.py a1_video.webp a2_video.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log`
+Copy videoconvert.py in same folder as webp video files. Test commands (no user inputs default setting is 20framespersecond: \
+`videoconvert.py`\
+`python3 videoconvert.py` \
+# Commandline user inputs
+| Argument | Description|
+|----------|-------------|
+| `--fps 16` | Video frames per second |
+| `--percent 80` | Split video into two parts by % |
+| `--output .\folder` | Directory for output MP4 files |
+| `--combine video.mp4` | Combine multible converted videos to 1 |
+| `--reverse` | Reverse the video playback |
+| `--loop` | Create seamless loop by appending reversed frame sequence |
+| `--log` | Enable logging to webp_converter.log file |
 
+# Examples
 ### Convert all webp files in same folder
 Run test code: `python3 videoconvert.py --fps 16`\
 \
@@ -34,7 +43,8 @@ Run test code: `python3 videoconvert.py --percent 80`\
 \
 ![percentage](./images/image_prosent.png)
 
-### Convert all videos and extra video file that combined all videos (videos sorted by filename a-z and 1-9), (combining videos may fail if the videos are incompatible with each other, such as having different resolutions)
+### Convert videos and combine all to one video
+Combined all videos from folder (videos sorted by filename a-z and 1-9), (combining videos may fail if the videos are incompatible with each other, such as having different resolutions)\
 Run test code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 \
 ![combine](./images/image_combine.png)
