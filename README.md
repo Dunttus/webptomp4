@@ -46,7 +46,9 @@ Run test code: `python3 videoconvert.py --reverse`
 Works with stacking video frames normaly forward, then immediately playing same video video backwards and combining these to same video. So you get a basic seamless back‑and‑forth loop.\
 Run test code: `python3 videoconvert.py --loop`\
 \
-[images/video_sample.mp4](https://github.com/Dunttus/webptomp4/blob/a89425140db7c12386164be58ed25ef4671598bf/images/video_sample.mp4)
+Sample video:\
+https://github.com/user-attachments/assets/b2931713-c16b-4a06-ad62-e29b3cd72645
+
 
 ### Save local logs in text file with --log (for debugging)
 Run test code: `python3 videoconvert.py --log --fps 16 --combine fullvideo.mp4`\
