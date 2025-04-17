@@ -142,11 +142,24 @@ class VideoConverter:
     """Handles conversion of image sequences to video formats."""
     
     @staticmethod
+    def loop_frames(frames: List[str]) -> List[str]:
+        """Creates a ping-pong loop by appending the reversed entire frame sequence."""
+        # Append reversed frames to create seamless forward-backward loop
+        return frames + list(reversed(frames))
+
+    @staticmethod
+    def reverse_frames(frames: List[str]) -> List[str]:
+        """Reverses frame order from last to first."""
+        return list(reversed(frames))
+
+    @staticmethod
     def convert_to_mp4(
         source_file: str,
         frame_rate: int = 20,
         split_ratio: int = 100,
-        output_dir: Optional[str] = None
+        output_dir: Optional[str] = None,
+        loop_video: bool = False,
+        reverse_video: bool = False
     ) -> Optional[List[str]]:
         """
         Converts an animated image to MP4 video(s).
@@ -156,6 +169,8 @@ class VideoConverter:
             frame_rate: Frames per second for output video
             split_ratio: Percentage to split video (100 = no split)
             output_dir: Directory for output files (None = current dir)
+            loop_video: Whether to loop by reversing entire sequence
+            reverse_video: Whether to reverse playback
             
         Returns:
             List of output file paths or None if conversion failed
@@ -188,7 +203,17 @@ class VideoConverter:
                 output_path = output_dir / f"{base_name}_part{i}.mp4"
                 
                 logging.info(f"Creating video segment {i} with {len(segment)} frames")
-                clip = ImageSequenceClip(segment, fps=frame_rate)
+                
+                # Apply looping or reversing if requested
+                processed_frames = segment
+                if loop_video:
+                    logging.info("Applying loop effect (ping-pong)")
+                    processed_frames = VideoConverter.loop_frames(processed_frames)
+                if reverse_video:
+                    logging.info("Applying reverse effect")
+                    processed_frames = VideoConverter.reverse_frames(processed_frames)
+
+                clip = ImageSequenceClip(processed_frames, fps=frame_rate)
                 
                 # Optimize video writing
                 clip.write_videofile(
@@ -222,7 +247,7 @@ class VideoConverter:
             video_files: List of video files to merge
             output_path: Path for merged output
             frame_rate: Not used (kept for compatibility)
-            
+        
         Returns:
             True if merge succeeded, False otherwise
         """
@@ -273,8 +298,8 @@ class VideoConverter:
 def main():
     """Main entry point for command-line execution."""
     parser = argparse.ArgumentParser(
-        description="Convert animated WEBP files to MP4 videos with optional splitting and merging",
-        epilog="Example: python3 videoconvert.py a1_video.webp a2_video.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log"
+        description="Convert animated WEBP files to MP4 videos with optional splitting, looping, and reversing",
+        epilog="Example: python3 videoconvert.py a1.webp --fps 16 --percent 50 --output videos --combine final.mp4 --log --loop --reverse"
     )
     parser.add_argument(
         "input_files",
@@ -308,6 +333,16 @@ def main():
         action="store_true",
         help="Enable logging to webp_converter.log file"
     )
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Create seamless loop by appending reversed frame sequence"
+    )
+    parser.add_argument(
+        "--reverse",
+        action="store_true",
+        help="Reverse the video playback"
+    )
     
     args = parser.parse_args()
     configure_logging(args.log)
@@ -325,12 +360,14 @@ def main():
         if not Path(file).exists():
             logging.warning(f"File not found: {file}")
             continue
-            
+        
         result = VideoConverter.convert_to_mp4(
             file,
             frame_rate=args.fps,
             split_ratio=args.percent,
-            output_dir=args.output
+            output_dir=args.output,
+            loop_video=args.loop,
+            reverse_video=args.reverse
         )
         
         if result:
@@ -341,7 +378,7 @@ def main():
         output_path = Path(args.combine)
         if args.output and not output_path.is_absolute():
             output_path = Path(args.output) / output_path
-            
+        
         if not VideoConverter.merge_videos(processed_files, str(output_path), args.fps):
             logging.error("Failed to merge videos")
             
