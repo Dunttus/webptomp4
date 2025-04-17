@@ -1,6 +1,6 @@
 # webptomp4
 **Webp to mp4 video converter**
-Didint find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS and Windows 11.
+Didin't find any good webp to mp4 offline converter so i made simple one with Python3. Tested with WSL ubuntu 22.04.5LTS and Windows 11.
 # Requirement:
 Any OS that supports python3
 * Python3
@@ -39,14 +39,15 @@ Run test code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 \
 ![combine](./images/image_combine.png)
 
-### This seems to be best point of reversing videos since we are stacking frames, so reverse video before converting
+### Reversing video frames
+This seems to be the best point for reversing videos, since we are just saving and restacking frames in the right order to convert webp to mp4. /
 Run test code: `python3 videoconvert.py --reverse`
 
-### Added basic looping video function
-Works with stacking video frames normaly forward, then immediately playing same video video backwards and combining these to same video. So you get a basic seamless back‑and‑forth loop.\
+### Basic looping video
+Works with stacking video frames normally forward, then immediately playing the same video video backwards and combining these to 1 video file. So you get a basic seamless back‑and‑forth loop.\
 Run test code: `python3 videoconvert.py --loop`\
 \
-Sample video:\
+Sample looping video:\
 https://github.com/user-attachments/assets/b2931713-c16b-4a06-ad62-e29b3cd72645
 
 
