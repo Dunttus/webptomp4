@@ -10,10 +10,6 @@ Any OS that supports python3
   + Python3 Glob2
 * FFMPEG
 
-Python3 Pillow
-Python3 Moviepy
-Python3 Argparse
-Python3 Glob2
 # Install for Ubuntu bash
 `sudo apt-get update`\
 `sudo apt-get install python3`\
@@ -44,12 +40,13 @@ Run test code: `python3 videoconvert.py --fps 16 --combine fullvideo.mp4`\
 ![combine](./images/image_combine.png)
 
 ### This seems to be best point of reversing videos since we are stacking frames, so reverse video before converting
-Run test code: `python3 videoconvert.py --reverse`\
+Run test code: `python3 videoconvert.py --reverse`
 
-### Added basic looping video function that Works with stacking video frames normaly forward, then immediately playing same video video backwards and combining these to same video. So you get a basic seamless back‑and‑forth loop. 
+### Added basic looping video function
+Works with stacking video frames normaly forward, then immediately playing same video video backwards and combining these to same video. So you get a basic seamless back‑and‑forth loop.\
 Run test code: `python3 videoconvert.py --loop`\
 \
-<video src='./images/video_sample.mp4' width=180/>
+[images/video_sample.mp4](https://github.com/Dunttus/webptomp4/blob/a89425140db7c12386164be58ed25ef4671598bf/images/video_sample.mp4)
 
 ### Save local logs in text file with --log (for debugging)
 Run test code: `python3 videoconvert.py --log --fps 16 --combine fullvideo.mp4`\
